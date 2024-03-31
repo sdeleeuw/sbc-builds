@@ -1,16 +1,12 @@
 #!/bin/sh
 set -e
 
-NAME=dosbox-staging
-VERSION=0.81.0
-
-CCACHE_COMPRESS=true
-CCACHE_COMPRESSLEVEL=6
-CCACHE_SLOPPINESS="pch_defines,time_macros"
+NAME=RetroArch
+VERSION=1.18.0
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \
-  wget "https://github.com/dosbox-staging/${NAME}/archive/refs/tags/v${VERSION}.tar.gz" \
+  wget "https://github.com/libretro/${NAME}/archive/refs/tags/v${VERSION}.tar.gz" \
     -O ${NAME}-${VERSION}.tar.gz
 
 # check integrity
@@ -22,9 +18,9 @@ rm -rf ${NAME}-${VERSION}
 # extract tarball
 tar xzf ${NAME}-${VERSION}.tar.gz
 
-# setup
+# configure
 cd ${NAME}-${VERSION}
-meson setup build/release
+./configure --prefix=/opt/retroarch
 
 # compile
-meson compile -C build/release
+make -j $(nproc)

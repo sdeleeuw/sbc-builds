@@ -47,7 +47,7 @@ cp "../libmt32emu_2_7_1.tar.gz" "subprojects/packagecache/"
 cp "../mt32emu_2.7.1-1_patch.zip" "subprojects/packagecache/"
 
 # setup
-meson setup build/release
+meson setup build/release --prefix=/opt/dosbox-staging
 
 # compile
 meson compile -C build/release

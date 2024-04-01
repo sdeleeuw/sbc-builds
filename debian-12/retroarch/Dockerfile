@@ -25,7 +25,8 @@ RUN apt install -y libavcodec-dev libavdevice-dev libavfilter-dev libavformat-de
       libavutil-dev libpostproc-dev libswresample-dev libswscale-dev
 
 # other retroarch dependencies
-RUN apt install -y libfontconfig-dev libfreetype-dev libx11-xcb-dev wayland-protocols
+RUN apt install -y libflac-dev libfontconfig-dev libfreetype-dev libsixel-dev \
+      libvulkan-dev libx11-xcb-dev wayland-protocols
 
 USER build
 WORKDIR /build

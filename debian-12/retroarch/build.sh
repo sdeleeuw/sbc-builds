@@ -20,7 +20,7 @@ tar xzf ${NAME}-${VERSION}.tar.gz
 
 # configure
 cd ${NAME}-${VERSION}
-./configure --prefix=/opt/retroarch
+./configure --prefix=/opt/retroarch --disable-qt
 
 # compile
 make -j $(nproc)

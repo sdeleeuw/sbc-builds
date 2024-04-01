@@ -1,2 +1,6 @@
-dosbox-staging-*.tar.gz
 dosbox-staging-*/
+dosbox-staging-*.tar.gz
+iir_*.tar.gz
+iir_*_patch.zip
+libmt32emu_*.tar.gz
+mt32emu_*_patch.zip

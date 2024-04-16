@@ -9,29 +9,38 @@ rm -rf "${NAME}-${VERSION}"
 
 if [ -e "${NAME}-${VERSION}-git.tar.gz" ]; then
 
+  # check integrity
+  sha256sum -c checksums-sha256.txt
+
   # extract sources from tarball
   tar xf "${NAME}-${VERSION}-git.tar.gz"
 
 else
 
   # checkout sources from GitHub
-  git clone --branch "v${VERSION}" --depth 1 \
+  git clone \
+    --branch "v${VERSION}" \
+    --depth 1 \
+    --recurse-submodules \
     https://github.com/hrydgard/ppsspp.git \
     "${NAME}-${VERSION}"
 
-  # checkout submodules
-  cd "${NAME}-${VERSION}"
-  git submodule update --init --recursive
-
   # create source tarball
-  cd ..
   tar cvzf "${NAME}-${VERSION}-git.tar.gz" "${NAME}-${VERSION}/"
+
+  # save checksum
+  sha256sum "${NAME}-${VERSION}-git.tar.gz" > checksums-sha256.txt
 
 fi 
 
 # configure
-cd "${NAME}-${VERSION}"
-cmake .
+mkdir -p "${NAME}-${VERSION}/build"
+cd "${NAME}-${VERSION}/build"
+
+grep raspberrypi /sys/firmware/devicetree/base/compatible 2>/dev/null \
+&& CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/raspberry.armv8.cmake"
+
+cmake ${CMAKE_ARGS} ..
 
 # compile
-make
+make -j $(nproc)

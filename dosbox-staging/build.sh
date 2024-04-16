@@ -30,7 +30,7 @@ test -e "mt32emu_2.7.1-1_patch.zip" || \
     -O "mt32emu_2.7.1-1_patch.zip"
 
 # check integrity
-sha256sum -c CHECKSUM.SHA256
+sha256sum -c checksums-sha256.txt
 
 # clean up previous build
 rm -rf ${NAME}-${VERSION}

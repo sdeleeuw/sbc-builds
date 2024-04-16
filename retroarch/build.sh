@@ -10,7 +10,7 @@ test -e ${NAME}-${VERSION}.tar.gz || \
     -O ${NAME}-${VERSION}.tar.gz
 
 # check integrity
-sha256sum -c ${NAME}-${VERSION}.tar.gz.sha256
+sha256sum -c checksums-sha256.txt
 
 # clean up previous build
 rm -rf ${NAME}-${VERSION}

@@ -37,10 +37,7 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-grep raspberrypi /sys/firmware/devicetree/base/compatible 2>/dev/null \
-&& CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/raspberry.armv8.cmake"
-
-cmake ${CMAKE_ARGS} ..
+cmake --install-prefix=/opt/ppsspp ..
 
 # compile
 make -j $(nproc)

@@ -8,7 +8,7 @@ RUN apt update \
 
 # install mandatory packages
 RUN apt -y --no-install-recommends install \
- build-essential cpio unzip rsync file bc wget ca-certificates
+ build-essential cpio unzip rsync file bc wget ca-certificates git vim
 
 # install recommended packages
 RUN apt -y --no-install-recommends install \

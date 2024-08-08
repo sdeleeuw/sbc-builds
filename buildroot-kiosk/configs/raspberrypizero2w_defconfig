@@ -47,6 +47,14 @@ BR2_PACKAGE_XZ=y
 BR2_PACKAGE_KMOD=y
 BR2_PACKAGE_HOST_KMOD_XZ=y
 
+# --------------
+# CUSTOMIZATIONS
+# --------------
+
+# enable ccache
+BR2_CCACHE=y
+BR2_CCACHE_DIR="/build/ccache"
+
 # udev
 BR2_ROOTFS_DEVICE_CREATION_DYNAMIC_EUDEV=y
 

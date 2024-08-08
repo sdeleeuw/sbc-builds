@@ -15,5 +15,5 @@ cp -rv configs buildroot/
 
 # build
 cd buildroot
-make raspberrypizero2w_defconfig
-make
+make BR2_EXTERNAL=/build raspberrypizero2w_kiosk_defconfig
+make BR2_EXTERNAL=/build

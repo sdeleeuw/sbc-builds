@@ -12,5 +12,5 @@ git clone --depth 1 https://gitlab.com/buildroot.org/buildroot.git
 
 # build
 cd buildroot
-make BR2_EXTERNAL=/build raspberrypizero2w_kiosk_defconfig
-make BR2_EXTERNAL=/build
+make BR2_EXTERNAL=/build raspberrypizero2w_defconfig
+make

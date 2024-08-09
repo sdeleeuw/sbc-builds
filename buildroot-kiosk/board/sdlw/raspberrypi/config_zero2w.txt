@@ -25,4 +25,4 @@ dtoverlay=miniuart-bt
 dtparam=krnbt=on
 
 # Enable DRM VC4 V3D driver
-dtparam=vc4-kms-v3d
+dtoverlay=vc4-kms-v3d

@@ -2,7 +2,7 @@
 set -e
 
 NAME=RetroArch
-VERSION=1.18.0
+VERSION=1.19.1
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \

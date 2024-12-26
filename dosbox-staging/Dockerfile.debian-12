@@ -8,27 +8,22 @@ RUN apt update \
  && apt -y clean
 
 # basic tools
-RUN apt install -y git sudo tmux vim wget
+RUN apt install -y git sudo vim wget
 
 # add non priviledged user for building
 RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt install -y build-essential ccache cmake meson pkgconf
+RUN apt install -y build-essential meson pkgconf
 
 # SDL2 library
 RUN apt install -y libsdl2-dev libsdl2-net-dev
 
 # other dependencies
 RUN apt install -y \
-  libatomic1 \
-  libfluidsynth-dev \
   libopusfile-dev \
-  libpng-dev \
-  libslirp-dev \
-  libspeexdsp-dev \
-  libxi-dev
+  libpng-dev
 
 USER build
 WORKDIR /build

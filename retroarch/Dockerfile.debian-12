@@ -8,14 +8,14 @@ RUN apt update \
  && apt -y clean
 
 # basic tools
-RUN apt install -y git sudo tmux vim wget
+RUN apt install -y git sudo vim wget
 
 # add non priviledged user for building
 RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt install -y build-essential pkgconf
+RUN apt install -y build-essential  # pkgconf
 
 # SDL2 library
 RUN apt install -y libsdl2-dev
@@ -26,13 +26,8 @@ RUN apt install -y libavcodec-dev libavdevice-dev libavfilter-dev libavformat-de
 
 # other dependencies
 RUN apt install -y \
-  libflac-dev \
-  libfontconfig-dev \
-  libfreetype-dev \
-  libsixel-dev \
   libvulkan-dev \
-  libx11-xcb-dev \
-  wayland-protocols
+  libx11-xcb-dev
 
 USER build
 WORKDIR /build

@@ -1,0 +1,28 @@
+FROM debian:12
+
+# apply latest security patches
+RUN apt update \
+ && apt -y upgrade \
+ && apt -y full-upgrade \
+ && apt -y autoremove \
+ && apt -y clean
+
+# basic tools
+RUN apt install -y git sudo vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt install -y build-essential
+
+# install Python 3.11 build dependencies
+RUN cat /etc/apt/sources.list.d/debian.sources | \
+    sed 's/Types: deb/Types: deb-src/' | \
+    tee -a /etc/apt/sources.list.d/debian-src.sources \
+ && sudo apt update \
+ && sudo apt -y build-dep python3.11
+
+USER build
+WORKDIR /build

@@ -1,4 +1,4 @@
-FROM debian:12
+FROM ubuntu:noble
 
 # apply latest security patches
 RUN apt update \
@@ -10,9 +10,8 @@ RUN apt update \
 # basic tools
 RUN apt install -y git sudo vim wget
 
-# add non priviledged user for building
-RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
- && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+# password-less sudo access for user ubuntu
+RUN echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/ubuntu-nopasswd
 
 # basic build environment
 RUN apt install -y build-essential
@@ -29,5 +28,5 @@ RUN apt install -y \
   libvulkan-dev \
   libx11-xcb-dev
 
-USER build
-WORKDIR /build
+USER ubuntu
+WORKDIR /home/ubuntu

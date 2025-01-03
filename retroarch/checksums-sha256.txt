@@ -1,1 +1,1 @@
-504a3a8a6e5861eb43a61be8339f61183e7ea940c1ff68ac2a2f57d35c67f8ff  RetroArch-1.19.1.tar.gz
+a8c165d3b647c5fc5ffb28e95bbcadfa781c85ec44bbdcfe07603b3d265f84a8  RetroArch-1.20.0.tar.gz

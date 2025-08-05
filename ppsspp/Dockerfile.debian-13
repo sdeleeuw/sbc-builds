@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM debian:trixie
 
 # apply latest security patches
 RUN apt-get update \
@@ -10,8 +10,9 @@ RUN apt-get update \
 # basic tools
 RUN apt-get -y install git sudo vim wget
 
-# password-less sudo access for user ubuntu
-RUN echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/ubuntu-nopasswd
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
 RUN apt-get -y install build-essential cmake pkgconf
@@ -27,12 +28,12 @@ RUN apt-get -y install libavcodec-dev libavdevice-dev libavfilter-dev libavforma
 RUN apt-get -y install \
   libcurl4-openssl-dev \
   libfontconfig1-dev \
+  libgl-dev \
   libglew-dev \
-  libgl1-mesa-dev \
-  libglu1-mesa-dev \
+  libglvnd-dev \
   libsnappy-dev \
-  libzip-dev \
-  spirv-tools
+  libvulkan-dev \
+  libzip-dev
 
-USER ubuntu
-WORKDIR /home/ubuntu
+USER build
+WORKDIR /build

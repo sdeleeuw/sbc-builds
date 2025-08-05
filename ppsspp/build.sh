@@ -2,7 +2,7 @@
 set -e
 
 NAME=ppsspp
-VERSION=1.17.1
+VERSION=1.19.3
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"

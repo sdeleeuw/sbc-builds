@@ -1,39 +1,39 @@
 FROM debian:12
 
 # apply latest security patches
-RUN apt update \
- && apt -y upgrade \
- && apt -y full-upgrade \
- && apt -y autoremove \
- && apt -y clean
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
 
 # basic tools
-RUN apt install -y git sudo tmux vim wget
+RUN apt-get -y install git sudo vim wget
 
 # add non priviledged user for building
 RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt install -y build-essential cmake pkgconf
+RUN apt-get -y install build-essential cmake pkgconf
 
 # SDL2 library
-RUN apt install -y libsdl2-dev libsdl2-ttf-dev
+RUN apt-get -y install libsdl2-dev libsdl2-ttf-dev
 
 # FFmpeg library
-RUN apt install -y libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev \
+RUN apt-get -y install libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev \
       libavutil-dev libpostproc-dev libswresample-dev libswscale-dev
 
 # other dependencies
-RUN apt install -y \
+RUN apt-get -y install \
   libcurl4-openssl-dev \
   libfontconfig1-dev \
+  libgl-dev \
   libglew-dev \
-  libgl1-mesa-dev \
-  libglu1-mesa-dev \
+  libglvnd-dev \
   libsnappy-dev \
-  libzip-dev \
-  spirv-tools
+  libvulkan-dev \
+  libzip-dev
 
 USER build
 WORKDIR /build

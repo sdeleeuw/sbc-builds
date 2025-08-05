@@ -1,26 +1,26 @@
 FROM ubuntu:noble
 
 # apply latest security patches
-RUN apt update \
- && apt -y upgrade \
- && apt -y full-upgrade \
- && apt -y autoremove \
- && apt -y clean
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
 
 # basic tools
-RUN apt install -y git sudo vim wget
+RUN apt-get -y install git sudo vim wget
 
 # password-less sudo access for user ubuntu
 RUN echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/ubuntu-nopasswd
 
 # basic build environment
-RUN apt install -y build-essential meson pkgconf
+RUN apt-get -y install build-essential meson pkgconf
 
 # SDL2 library
-RUN apt install -y libsdl2-dev libsdl2-net-dev
+RUN apt-get -y install libsdl2-dev libsdl2-net-dev
 
 # other dependencies
-RUN apt install -y \
+RUN apt-get -y install \
   libopusfile-dev \
   libpng-dev
 

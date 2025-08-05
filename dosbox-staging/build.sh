@@ -2,7 +2,7 @@
 set -e
 
 NAME=dosbox-staging
-VERSION=0.82.0
+VERSION=0.82.2
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \

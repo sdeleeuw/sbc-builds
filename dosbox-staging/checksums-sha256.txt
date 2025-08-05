@@ -1,1 +1,1 @@
-a3f63f86bf203ba28512e189ce6736cdb0273647e77a62ce47ed3d01b3b4a88d  dosbox-staging-0.82.0.tar.gz
+387c97b373c3164ab5abbbc2b210bf94b5567057abe44ee1e8b4d4e725bd422c  dosbox-staging-0.82.2.tar.gz

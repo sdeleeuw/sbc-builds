@@ -20,7 +20,11 @@ tar xf ${NAME}-${VERSION}.tar.xz
 
 # setup
 cd ${NAME}-${VERSION}
-meson setup build/ --prefix=/opt/${NAME}-${VERSION}
+meson setup build/ \
+  -Dprefix=/opt/${NAME}-${VERSION} \
+  -Dplatforms=x11,wayland \
+  -Dgallium-drivers=panfrost \
+  -Dvulkan-drivers=panfrost
 
 # compile
 meson compile -C build/

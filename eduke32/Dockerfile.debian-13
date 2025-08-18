@@ -1,27 +1,27 @@
-FROM debian:12
+FROM debian:13
 
 # apply latest security patches
-RUN apt update \
- && apt -y upgrade \
- && apt -y full-upgrade \
- && apt -y autoremove \
- && apt -y clean
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
 
 # basic tools
-RUN apt install -y git sudo tmux vim wget
+RUN apt-get -y install sudo vim wget
 
 # add non priviledged user for building
 RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt install -y build-essential
+RUN apt-get -y install build-essential
 
 # SDL2 library
-RUN apt install -y libsdl2-dev
+RUN apt-get -y install libsdl2-dev
 
 # other dependencies
-RUN apt install -y \
+RUN apt-get -y install \
   libflac-dev \
   libvpx-dev
 

@@ -3,7 +3,7 @@
 TAG=eduke32-build
 
 if [ "$1" = "-b" ]; then
-  DISTRO=${2:-debian-12}
+  DISTRO=${2:-debian-13}
   DOCKERFILE=Dockerfile.${DISTRO}
 
   if [ -e ${DOCKERFILE} ]; then

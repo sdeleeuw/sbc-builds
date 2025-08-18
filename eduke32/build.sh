@@ -2,7 +2,7 @@
 set -e
 
 NAME=eduke32
-VERSION=20240725-10593-19c21b9ab
+VERSION=20250813-10626-126f35ca8
 
 # download sources
 test -e ${NAME}_src_${VERSION}.tar.xz || \

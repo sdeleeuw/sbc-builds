@@ -1,0 +1,43 @@
+From 479760b4b197132bfb18fb2153be268fb07d242b Mon Sep 17 00:00:00 2001
+From: Brent Spillner <spillner@acm.org>
+Date: Fri, 17 Jan 2025 17:18:15 -0500
+Subject: [PATCH] TTF_Font typedef in GsTrueTypeFont.h was shadowing another in
+ SDL2/TTF_Font.h, triggering errors in GCC 14
+
+---
+ GsKit/graphics/GsTrueTypeFont.cpp | 2 +-
+ GsKit/graphics/GsTrueTypeFont.h   | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/GsKit/graphics/GsTrueTypeFont.cpp b/GsKit/graphics/GsTrueTypeFont.cpp
+index 29c89e10d..738f60649 100644
+--- a/GsKit/graphics/GsTrueTypeFont.cpp
++++ b/GsKit/graphics/GsTrueTypeFont.cpp
+@@ -1,8 +1,8 @@
+ 
++#include <SDL_ttf.h>
+ #include "GsTrueTypeFont.h"
+ #include <SDL_rwops.h>
+ 
+-#include <SDL_ttf.h>
+ 
+ GsTrueTypeFont::GsTrueTypeFont()
+ {
+diff --git a/GsKit/graphics/GsTrueTypeFont.h b/GsKit/graphics/GsTrueTypeFont.h
+index bfb5aed13..f93fb9ee3 100644
+--- a/GsKit/graphics/GsTrueTypeFont.h
++++ b/GsKit/graphics/GsTrueTypeFont.h
+@@ -6,7 +6,9 @@
+ #include <base/interface/Color.h>
+ #include <graphics/GsSurface.h>
+ 
+-typedef struct _TTF_Font TTF_Font;
++#ifndef SDL_TTF_H_
++  typedef struct _TTF_Font TTF_Font;
++#endif
+ 
+ class GsTrueTypeFont
+ {
+-- 
+GitLab
+

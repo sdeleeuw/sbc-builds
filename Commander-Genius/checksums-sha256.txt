@@ -1,0 +1,2 @@
+028bb12e6e35df7e299ad89a0e3b3c5ef1a5302bf658fa3dd03b6b92e3a06f65  Commander-Genius-v3.5.2.tar.gz
+bff6710575b04c509cd391a70d4111114cf704ab8cb5e173254631dd14ea1ae2  patches/001-sdl-ttf-font-type.patch

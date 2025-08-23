@@ -1,0 +1,31 @@
+FROM debian:13
+
+# apply latest security patches
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
+
+# basic tools
+RUN apt-get -y install sudo vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt-get -y install build-essential cmake
+
+# SDL2 library
+RUN apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev  # libsdl2-net-dev
+
+# other dependencies
+RUN apt-get -y install \
+  libcurl4-openssl-dev \
+  libgl-dev \
+  libglvnd-dev \
+  zlib1g-dev
+
+USER build
+WORKDIR /build

@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-NAME=ppsspp
-VERSION=1.19.3
+NAME=dolphin
+VERSION=2506a
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"
@@ -19,11 +19,21 @@ else
 
   # checkout sources from GitHub
   git clone \
-    --branch "v${VERSION}" \
+    --branch "${VERSION}" \
     --depth 1 \
-    --recurse-submodules \
-    https://github.com/hrydgard/ppsspp.git \
+    https://github.com/dolphin-emu/dolphin.git \
     "${NAME}-${VERSION}"
+
+  # add submodules
+  ( cd "${NAME}-${VERSION}"
+
+    git -c submodule."Externals/Qt".update=none \
+	-c submodule."Externals/FFmpeg-bin".update=none \
+	-c submodule."Externals/libadrenotools".update=none \
+	submodule update --init --recursive
+
+    git pull --recurse-submodules
+  )
 
   # create source tarball
   tar cvzf "${NAME}-${VERSION}-git.tar.gz" "${NAME}-${VERSION}/"
@@ -37,7 +47,7 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-cmake --install-prefix=/opt/ppsspp ..
+cmake --install-prefix=/home/sander/Applications/dolphin ..
 
 # compile
 make -j $(nproc)

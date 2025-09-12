@@ -1,0 +1,43 @@
+FROM debian:trixie
+
+# apply latest security patches
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
+
+# basic tools
+RUN apt-get -y install git sudo unzip vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt-get -y install build-essential cmake pkgconf
+
+# FFmpeg library
+RUN apt-get -y install ffmpeg libavcodec-dev libavdevice-dev libavfilter-dev \
+  libavformat-dev libavutil-dev libpostproc-dev libswresample-dev libswscale-dev
+
+# other dependencies
+RUN apt-get -y install \
+  libasound2-dev \
+  libbluetooth-dev \
+  libcurl4-openssl-dev \
+  libevdev-dev \
+  libgl-dev \
+  libglvnd-dev \
+  libpangocairo-1.0-0 \
+  libpulse-dev \
+  libqt6svg6-dev \
+  libsystemd-dev \
+  libudev-dev \
+  libusb-1.0-0-dev \
+  libxi-dev \
+  libxrandr-dev \
+  qt6-base-private-dev
+
+USER build
+WORKDIR /build

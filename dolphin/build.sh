@@ -2,7 +2,7 @@
 set -e
 
 NAME=dolphin
-VERSION=2506a
+VERSION=2509
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"
@@ -47,7 +47,7 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-cmake --install-prefix=/home/sander/Applications/dolphin ..
+cmake --install-prefix=/opt/dolphin ..
 
 # compile
-make -j $(nproc)
+make -j 2

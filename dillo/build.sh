@@ -37,8 +37,11 @@ else
 
 fi
 
-# configure
+# patch
 cd "${NAME}-${VERSION}"
+cat ../dillo-enable-fltk14.patch | patch -p1
+
+# configure
 ./autogen.sh
 ./configure --prefix=/opt/dillo
 

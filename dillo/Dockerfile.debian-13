@@ -20,7 +20,7 @@ RUN apt-get -y install autoconf automake build-essential
 # other dependencies
 RUN apt-get -y install \
   libbrotli-dev \
-  libfltk1.3-dev \
+  libfltk1.4-dev \
   libjpeg62-turbo-dev \
   libpng-dev \
   libssl-dev \

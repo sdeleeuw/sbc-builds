@@ -52,9 +52,5 @@ make -j $(nproc)
 sudo make install
 
 # create binary package
-( cd /
-  tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dillo
-)
-
-cd ..
-mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" .
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dillo)
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

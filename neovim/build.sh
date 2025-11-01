@@ -3,6 +3,7 @@ set -e
 
 NAME=neovim
 VERSION=0.11.4
+ARCH=$(uname -m)
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \
@@ -24,3 +25,7 @@ make CMAKE_BUILD_TYPE=Release
 
 # install
 sudo make CMAKE_INSTALL_PREFIX=/opt/neovim install
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/neovim )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

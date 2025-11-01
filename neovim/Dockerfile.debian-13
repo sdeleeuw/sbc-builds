@@ -1,0 +1,27 @@
+FROM debian:trixie
+
+# apply latest security patches
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
+
+# basic tools
+RUN apt-get -y install git sudo vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt-get -y install build-essential cmake ninja-build
+
+# other dependencies
+RUN apt-get -y install \
+  curl \
+  gettext \
+  unzip
+
+USER build
+WORKDIR /build

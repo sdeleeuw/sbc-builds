@@ -3,6 +3,7 @@ set -e
 
 NAME=dosbox-staging
 VERSION=0.82.2
+ARCH=$(uname -m)
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \
@@ -24,3 +25,10 @@ meson setup build/release --prefix=/opt/dosbox-staging
 
 # compile
 meson compile -C build/release
+
+# install
+sudo meson install -C build/release
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dosbox-staging )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

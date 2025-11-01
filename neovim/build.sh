@@ -23,4 +23,4 @@ cd ${NAME}-${VERSION}
 make CMAKE_BUILD_TYPE=Release
 
 # install
-make CMAKE_INSTALL_PREFIX=/opt/neovim install
+sudo make CMAKE_INSTALL_PREFIX=/opt/neovim install

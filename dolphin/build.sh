@@ -2,7 +2,7 @@
 set -e
 
 NAME=dolphin
-VERSION=2509
+VERSION=2512
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"

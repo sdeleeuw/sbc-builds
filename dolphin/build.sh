@@ -2,7 +2,8 @@
 set -e
 
 NAME=dolphin
-VERSION=2512
+VERSION=2603a
+ARCH=$(uname -m)
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"
@@ -50,4 +51,11 @@ cd "${NAME}-${VERSION}/build"
 cmake --install-prefix=/opt/dolphin ..
 
 # compile
-make -j 2
+make -j $(nproc)
+
+# install
+sudo make install
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dolphin )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

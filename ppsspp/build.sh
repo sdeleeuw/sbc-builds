@@ -2,7 +2,8 @@
 set -e
 
 NAME=ppsspp
-VERSION=1.19.3
+VERSION=1.20.3
+ARCH=$(uname -m)
 
 # clean up previous build
 rm -rf "${NAME}-${VERSION}"
@@ -37,7 +38,14 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-cmake --install-prefix=/opt/ppsspp ..
+cmake --install-prefix /opt/ppsspp -D USING_X11_VULKAN=off ..
 
 # compile
 make -j $(nproc)
+
+# install
+sudo make install
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/ppsspp )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

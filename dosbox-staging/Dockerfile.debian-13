@@ -15,7 +15,7 @@ RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt-get -y install build-essential meson pkgconf
+RUN apt-get -y install build-essential cmake meson pkgconf
 
 # SDL2 library
 RUN apt-get -y install libsdl2-dev libsdl2-net-dev

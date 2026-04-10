@@ -1,4 +1,4 @@
-FROM debian:trixie
+FROM debian:13
 
 # apply latest security patches
 RUN apt-get update \

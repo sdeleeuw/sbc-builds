@@ -23,21 +23,83 @@ RUN apt-get -y install ffmpeg libavcodec-dev libavdevice-dev libavfilter-dev \
 
 # other dependencies
 RUN apt-get -y install \
-  libasound2-dev \
-  libbluetooth-dev \
-  libcurl4-openssl-dev \
-  libevdev-dev \
-  libgl-dev \
-  libglvnd-dev \
-  libpangocairo-1.0-0 \
-  libpulse-dev \
-  libqt6svg6-dev \
-  libsystemd-dev \
-  libudev-dev \
-  libusb-1.0-0-dev \
-  libxi-dev \
+  # OpenGL
+  libgl1-mesa-dev \
+  # X11
+  libx11-dev \
   libxrandr-dev \
-  qt6-base-private-dev
+  libxi-dev \
+  # EGL
+  libegl1-mesa-dev \
+  # udev (Use libeudev-dev if on non-systemd)
+  libudev-dev \
+  # evdev
+  libevdev-dev \
+  # SDL
+  libsdl3-dev \
+  # FMT
+  libfmt-dev \
+  # glslang
+  glslang-dev \
+  glslang-tools \
+  # pugixml
+  libpugixml-dev \
+  # enet
+  libenet-dev \
+  # xxhash
+  libxxhash-dev \
+  # bzip2
+  libbz2-dev \
+  # LZMA
+  liblzma-dev \
+  # zstd
+  libzstd-dev \
+  # zlib
+  zlib1g-dev \
+  # minizip-ng
+  ## Not packaged yet (but soon on Debian)
+  # lzo
+  liblzo2-dev \
+  # lz4
+  liblz4-dev \
+  # spng
+  libspng-dev \
+  # cubeb
+  libcubeb-dev \
+  # libusb
+  libusb-1.0-0-dev \
+  # SFML
+  ## libsfml-dev \
+  ## SFML 3.0 is not yet shipped on Debian and Ubuntu
+  # MiniUPNPC
+  libminiupnpc-dev \
+  # MbedTLS
+  ## We are using an outdated 2.x version, and Debian/Ubuntu only ship 3.x now
+  # cURL (this could also be libcurl4-gnutls-dev)
+  libcurl4-openssl-dev \
+  # hidapi
+  libhidapi-dev \
+  # mgba
+  ## libmgba-dev \
+  ## Newer MGBA versions are currently broken with Dolphin
+  # systemd
+  libsystemd-dev \
+  # gtest
+  libgtest-dev \
+  # ALSA
+  libasound2-dev \
+  # PulseAudio
+  libpulse-dev \
+  # LLVM
+  llvm-dev \
+  # BlueZ
+  libbluetooth-dev \
+  # Qt6
+  qt6-base-dev \
+  qt6-base-private-dev \
+  qt6-svg-dev \
+  # Gettext
+  gettext
 
 USER build
 WORKDIR /build

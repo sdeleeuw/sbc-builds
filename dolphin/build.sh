@@ -58,4 +58,4 @@ sudo make install
 
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dolphin )
-mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

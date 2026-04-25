@@ -34,7 +34,7 @@ tar xzf ${ZMUSIC_DIRNAME}.tar.gz
 mkdir ${ZMUSIC_DIRNAME}/build
 ( cd ${ZMUSIC_DIRNAME}/build
   cmake -DCMAKE_BUILD_TYPE=Release ..
-  cmake --build .
+  cmake --build . --parallel $(nproc)
   sudo make install
 )
 
@@ -45,6 +45,7 @@ mkdir ${NAME}-${VERSION}/build
 cd ${NAME}-${VERSION}/build
 
 cmake \
+  -DCMAKE_INSTALL_PREFIX=/opt/UZDoom \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -G Ninja \
@@ -52,3 +53,14 @@ cmake \
 
 # compile
 cmake --build .
+
+# install
+sudo cmake --install .
+
+# copy libs
+sudo mkdir -p /opt/UZDoom/lib
+sudo cp /usr/local/lib/libzmusic.so.1 /opt/UZDoom/lib/
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/UZDoom )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

@@ -1,56 +1,44 @@
 #!/bin/sh
 set -e
 
-NAME=dillo
-GIT_REVISION=6a58684
-VERSION=20251025-${GIT_REVISION}
+DILLO_VERSION=3.3.0
+DILLO_TARBALL=dillo-${DILLO_VERSION}.tar.gz
+DILLO_DOWNLOAD_URL="https://dillo-browser.org/release/${DILLO_VERSION}/${DILLO_TARBALL}"
+
 ARCH=$(uname -m)
+INSTALL_PREFIX=/opt/dillo
+PACKAGE_NAME=dillo-${DILLO_VERSION}-${ARCH}.tar.gz
+
+# download sources
+
+test -e ${DILLO_TARBALL} \
+  || wget "${DILLO_DOWNLOAD_URL}"
+
+# verify checksums
+
+test -e checksums-sha256.txt \
+  && sha256sum -c checksums-sha256.txt
 
 # clean up previous build
-rm -rf "${NAME}-${VERSION}"
+rm -rf dillo-${DILLO_VERSION}
+tar xf ${DILLO_TARBALL}
 
-if [ -e "${NAME}-${VERSION}-git.tar.gz" ]; then
+( cd dillo-${DILLO_VERSION}
 
-  # check integrity
-  sha256sum -c checksums-sha256.txt
+  # configure
+  ./configure \
+    --prefix=${INSTALL_PREFIX}
 
-  # extract sources from tarball
-  tar xf "${NAME}-${VERSION}-git.tar.gz"
+  # compile
+  make -j $(nproc)
 
-else
-
-  # download source from GitHub
-  git clone --depth 1 \
-    https://github.com/dillo-browser/dillo.git \
-    "${NAME}-${VERSION}"
-
-  # checkout specific commit
-  ( cd "${NAME}-${VERSION}"
-    git checkout ${GIT_REVISION}
-  )
-
-  # create source tarball
-  tar cvzf "${NAME}-${VERSION}-git.tar.gz" "${NAME}-${VERSION}/"
-
-  # save checksum
-  sha256sum "${NAME}-${VERSION}-git.tar.gz" > checksums-sha256.txt
-
-fi
-
-# patch
-cd "${NAME}-${VERSION}"
-cat ../dillo-enable-fltk14.patch | patch -p1
-
-# configure
-./autogen.sh
-./configure --prefix=/opt/dillo
-
-# compile
-make -j $(nproc)
-
-# install
-sudo make install
+  # install
+  sudo make install
+)
 
 # create binary package
-( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dillo)
-mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../
+
+sudo mv ${INSTALL_PREFIX}/bin/dillo ${INSTALL_PREFIX}/bin/dillo.real
+sudo cp ./dillo-wrapper.sh ${INSTALL_PREFIX}/bin/dillo
+( cd /; tar cvzf /tmp/${PACKAGE_NAME} ${INSTALL_PREFIX} )
+mv /tmp/${PACKAGE_NAME} ./

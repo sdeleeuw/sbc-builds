@@ -26,38 +26,45 @@ test -e ${DILLO_TARBALL} \
 test -e checksums-sha256.txt \
   && sha256sum -c checksums-sha256.txt
 
-# FLTK
+# ==== FLTK ====
 
 rm -rf fltk-${FLTK_VERSION}
 tar xf ${FLTK_TARBALL}
 
 ( cd fltk-${FLTK_VERSION}
 
+  # configure
   cmake . -B build \
     -DFLTK_BACKEND_X11=OFF \
     -DFLTK_BUILD_SHARED_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 
+  # compile
   cmake --build build -j $(nproc)
 
+  # install
   sudo cmake --install build
 )
 
-# Dillo
+# ==== Dillo ====
 
+# clean up previous build
 rm -rf dillo-${DILLO_VERSION}
 tar xf ${DILLO_TARBALL}
 
 ( cd dillo-${DILLO_VERSION}
 
+  # configure
   FLTK_CONFIG=${INSTALL_PREFIX}/bin/fltk-config \
   ./configure \
     --prefix=${INSTALL_PREFIX} \
     --enable-experimental-fltk \
     --disable-xembed
 
+  # compile
   make -j $(nproc)
 
+  # install
   sudo make install
 )
 

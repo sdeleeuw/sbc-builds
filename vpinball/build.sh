@@ -34,16 +34,26 @@ cmake \
   -DRENDERER=GL \
   -DBUILD_RPI=ON \
   -DCMAKE_BUILD_TYPE=Release \
-  -B build
+  -B build-gl
 
 # compile
-cmake --build build -- -j $(nproc)
+cmake --build build-gl -- -j $(nproc)
+
+# configure (BGFX renderer: OpenGL and Vulkan)
+cmake \
+  -DRENDERER=BGFX \
+  -DBUILD_RPI=ON \
+  -DCMAKE_BUILD_TYPE=Release \
+  -B build-bgfx
+
+# compile
+cmake --build build-bgfx -- -j $(nproc)
 
 # install
 sudo mkdir -p /opt/vpinball
-sudo cp build/VPinballX_GL /opt/vpinball/
-sudo cp -a build/*.so build/*.so.* /opt/vpinball/
-sudo cp -r build/shaders-* build/assets build/plugins build/scripts build/docs /opt/vpinball/
+sudo cp build-gl/VPinballX_GL build-bgfx/VPinballX_BGFX /opt/vpinball/
+sudo cp -a build-gl/*.so build-gl/*.so.* build-bgfx/libbgfx.so /opt/vpinball/
+sudo cp -r build-gl/shaders-* build-gl/assets build-gl/plugins build-gl/scripts build-gl/docs /opt/vpinball/
 
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/vpinball )

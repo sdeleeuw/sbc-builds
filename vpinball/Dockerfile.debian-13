@@ -1,0 +1,41 @@
+FROM debian:13
+
+# apply latest security patches
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
+
+# basic tools
+RUN apt-get -y install git sudo vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt-get -y install build-essential cmake pkgconf
+
+# SDL3 backends: Wayland, KMSDRM, OpenGL ES, udev, ALSA, PulseAudio and PipeWire
+RUN apt-get -y install \
+  libasound2-dev \
+  libdrm-dev \
+  libegl-dev \
+  libgbm-dev \
+  libpipewire-0.3-dev \
+  libpulse-dev \
+  libudev-dev \
+  libwayland-dev \
+  libxkbcommon-dev
+
+# other dependencies
+RUN apt-get -y install \
+  autoconf \
+  bison \
+  curl \
+  libgpiod-dev \
+  libtool
+
+USER build
+WORKDIR /build

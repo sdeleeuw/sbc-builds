@@ -2,7 +2,7 @@
 set -e
 
 NAME=luanti
-VERSION=5.15.1
+VERSION=5.17.0
 ARCH=$(uname -m)
 
 # download sources

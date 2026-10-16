@@ -34,6 +34,13 @@ make -j $(nproc)
 # install
 sudo make install
 
+# use full paths in the menu entry (upstream only installs an SVG icon)
+sudo sed -i \
+  -e 's|^TryExec=retroarch$|TryExec=/opt/retroarch/bin/retroarch|' \
+  -e 's|^Exec=retroarch |Exec=/opt/retroarch/bin/retroarch |' \
+  -e 's|^Icon=com.libretro.RetroArch$|Icon=/opt/retroarch/share/pixmaps/com.libretro.RetroArch.svg|' \
+  /opt/retroarch/share/applications/com.libretro.RetroArch.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/retroarch )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

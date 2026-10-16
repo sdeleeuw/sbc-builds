@@ -2,7 +2,7 @@
 set -e
 
 NAME=mesa
-VERSION=25.2.1
+VERSION=26.2.5
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.xz || \

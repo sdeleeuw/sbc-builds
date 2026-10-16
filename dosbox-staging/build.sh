@@ -142,6 +142,12 @@ cmake --build --preset=release-linux
 # install
 sudo cmake --install build/release-linux
 
+# use full paths in the menu entry
+sudo sed -i \
+  -e 's|^Exec=dosbox$|Exec=/opt/dosbox-staging/bin/dosbox|' \
+  -e 's|^Icon=org.dosbox_staging.dosbox_staging$|Icon=/opt/dosbox-staging/share/icons/hicolor/1024x1024/apps/org.dosbox_staging.dosbox_staging.png|' \
+  /opt/dosbox-staging/share/applications/org.dosbox_staging.dosbox_staging.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dosbox-staging )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

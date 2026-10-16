@@ -2,7 +2,8 @@
 set -e
 
 NAME=RetroArch
-VERSION=1.20.0
+VERSION=1.22.2
+ARCH=$(uname -m)
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \
@@ -18,9 +19,21 @@ rm -rf ${NAME}-${VERSION}
 # extract tarball
 tar xzf ${NAME}-${VERSION}.tar.gz
 
-# configure
+# configure (OpenGL ES instead of desktop GL, no X11)
 cd ${NAME}-${VERSION}
-./configure --prefix=/opt/retroarch --disable-qt
+./configure \
+  --prefix=/opt/retroarch \
+  --disable-qt \
+  --disable-x11 \
+  --enable-opengles \
+  --enable-opengles3
 
 # compile
 make -j $(nproc)
+
+# install
+sudo make install
+
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/retroarch )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

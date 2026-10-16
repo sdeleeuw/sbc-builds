@@ -1,0 +1,51 @@
+FROM debian:13
+
+# apply latest security patches
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y full-upgrade \
+ && apt-get -y autoremove \
+ && apt-get -y clean
+
+# basic tools
+RUN apt-get -y install git sudo vim wget
+
+# add non priviledged user for building
+RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
+ && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
+
+# basic build environment
+RUN apt-get -y install build-essential pkgconf
+
+# RetroArch backends: Wayland, KMSDRM, OpenGL ES, Vulkan, udev, ALSA, PulseAudio and PipeWire
+RUN apt-get -y install \
+  libasound2-dev \
+  libdrm-dev \
+  libegl-dev \
+  libgbm-dev \
+  libgles-dev \
+  libpipewire-0.3-dev \
+  libpulse-dev \
+  libudev-dev \
+  libvulkan-dev \
+  libwayland-bin \
+  libwayland-dev \
+  libxkbcommon-dev \
+  wayland-protocols
+
+# SDL2 library
+RUN apt-get -y install libsdl2-dev
+
+# FFmpeg library
+RUN apt-get -y install \
+  libavcodec-dev \
+  libavdevice-dev \
+  libavfilter-dev \
+  libavformat-dev \
+  libavutil-dev \
+  libpostproc-dev \
+  libswresample-dev \
+  libswscale-dev
+
+USER build
+WORKDIR /build

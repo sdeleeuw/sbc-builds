@@ -1,1 +1,1 @@
-a8c165d3b647c5fc5ffb28e95bbcadfa781c85ec44bbdcfe07603b3d265f84a8  RetroArch-1.20.0.tar.gz
+245ef18c8fa8fbd9fbb5eb25cf43e17c6aace2f95c1ed99873cbd794012bb232  RetroArch-1.22.2.tar.gz

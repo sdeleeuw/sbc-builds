@@ -32,8 +32,6 @@ else
 	-c submodule."Externals/FFmpeg-bin".update=none \
 	-c submodule."Externals/libadrenotools".update=none \
 	submodule update --init --recursive
-
-    git pull --recurse-submodules
   )
 
   # create source tarball

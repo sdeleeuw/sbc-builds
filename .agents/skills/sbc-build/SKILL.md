@@ -267,14 +267,25 @@ appear.
 
 ## Test-building for arm64 on an x86_64 host
 
-The real target is aarch64 (`ARCH=$(uname -m)`), and some builds behave differently
-on x86_64 (e.g. desktop GL instead of GLES).
+The real target is aarch64 (`ARCH=$(uname -m)`), but **by default only build natively
+on x86_64**, with a separate test tag (e.g. `<name>-build-test`). Use it to find the
+dependencies, fix build errors and run the tests above; that takes minutes instead of
+hours. The user builds the package on the target device itself afterwards, so a qemu
+build usually only costs time.
 
-**Build natively on x86_64 first**, with a separate test tag (e.g. `<name>-build-test`).
-Use it to find the dependencies, fix build errors and run the tests above; that takes
-minutes instead of hours. Only once that succeeds, run the arm64 build under qemu as
-an architecture check (aarch64-specific code paths, GLES/RPI options). Only do the
-first iterations under qemu when the x86_64 build can't tell you anything.
+**Don't run an arm64 build under qemu**, except in these two cases:
+
+1. **The user asks for it** explicitly.
+2. **The build differs on x86_64 in a way that matters**, so the x86_64 build can't
+   verify the result. Example: vpinball only gets OpenGL ES with `-DBUILD_RPI=ON` on
+   aarch64; the x86_64 build uses desktop GL, so the GLES path was never compiled.
+   Look for options or backends that upstream only enables on aarch64/ARM
+   (`CMAKE_SYSTEM_PROCESSOR` checks, RPI/GLES switches). Say in one line why the
+   qemu build is needed before starting it.
+
+Otherwise, say in the summary that the package was only built on x86_64. When a qemu
+build is needed, still iterate on x86_64 first and run qemu only once that succeeds;
+only iterate under qemu when the x86_64 build can't tell you anything.
 
 If the host has qemu binfmt
 (`ls /proc/sys/fs/binfmt_misc/qemu-aarch64`), build and test under emulation with a

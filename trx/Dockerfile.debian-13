@@ -8,27 +8,35 @@ RUN apt-get update \
  && apt-get -y clean
 
 # basic tools
-RUN apt-get -y install git sudo vim wget
+RUN apt-get -y install git sudo unzip vim wget
 
 # add non priviledged user for building
 RUN useradd --uid 1000 --comment "Build" --shell /bin/bash --create-home build \
  && echo "build ALL=(ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/build-nopasswd
 
 # basic build environment
-RUN apt-get -y install build-essential cmake meson
+RUN apt-get -y install build-essential meson ninja-build pkgconf python3
 
 # SDL2 library
 RUN apt-get -y install libsdl2-dev
 
 # FFmpeg library
-RUN apt-get -y install libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev \
-      libavutil-dev libpostproc-dev libswresample-dev libswscale-dev
+RUN apt-get -y install \
+  libavcodec-dev \
+  libavfilter-dev \
+  libavformat-dev \
+  libavutil-dev \
+  libswresample-dev \
+  libswscale-dev
 
 # other dependencies
 RUN apt-get -y install \
+  libgl-dev \
   libglew-dev \
-  libluajit-5.1-dev \
-  uthash-dev
+  liblua5.4-dev \
+  libpcre2-dev \
+  uthash-dev \
+  zlib1g-dev
 
 USER build
 WORKDIR /build

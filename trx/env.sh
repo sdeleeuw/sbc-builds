@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG=tr2x-build
+TAG=trx-build
 
 if [ "$1" = "-b" ]; then
   DISTRO=${2:-debian-13}

@@ -1,2 +1,6 @@
 vkQuake-*.tar.gz
 vkQuake-*/
+SPIRV-*.tar.gz
+SPIRV-*/
+Vulkan-*.tar.gz
+Vulkan-*/

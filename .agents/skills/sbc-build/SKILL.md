@@ -13,7 +13,8 @@ read 2–3 recent packages (`git log` shows the newest) and copy their exact for
 
 Good references: `luanti/` (cmake, tarball), `UZDoom/` (tarball + bundled extra lib),
 `dillo-wayland/` (two sources, wayland), `dolphin/` and `ppsspp/` (git clone variant),
-`vpinball/` (upstream external-deps script, GLES).
+`vpinball/` (upstream external-deps script, GLES), `dosbox-staging/` (CMake preset with
+system libraries, four static bundled libs, `sed` fix for an upstream bug).
 
 ## Files per package
 
@@ -128,7 +129,19 @@ Conventions:
 - Sources are downloaded once (`test -e ... ||`) and always verified with `sha256sum -c`.
 - Every build starts clean (`rm -rf` of the source dir, then extract again).
 - Bundled extra libraries go in their own block separated by `# --------`, with their
-  own `*_VERSION` variable (see `UZDoom/build.sh`).
+  own `*_VERSION` variable (see `UZDoom/build.sh`). With several bundled libs, put all
+  downloads before the single `sha256sum -c`, so every tarball is verified (see
+  `dosbox-staging/build.sh`).
+- Prefer building bundled libraries **static**: `-DBUILD_SHARED_LIBS=OFF` (or the
+  project's own switch) plus `-DCMAKE_POSITION_INDEPENDENT_CODE=ON` (required: Debian's
+  gcc builds PIE executables by default). Install them with `sudo` into `/usr/local`;
+  the package then only contains `opt/<name>`. Disable optional features of a bundled
+  lib that the program doesn't use and that would pull in more dependencies (e.g.
+  FluidSynth as synthesizer only, without audio drivers). The alternative is shipping
+  the `.so` inside `opt/<name>` (see `UZDoom/`).
+- Upstream bugs in the build files get a small `sed` in `build.sh` right after
+  extracting, with a comment explaining it and a link to the upstream issue/PR. Use
+  `patches/*.patch` only for larger changes.
 - **Git clone variant** (when the release tarball lacks submodules; see `ppsspp/`,
   `dolphin/`): clone `--depth 1 --branch <tag> --recurse-submodules`, create
   `${NAME}-${VERSION}-git.tar.gz` and write its checksum; on later runs extract that
@@ -150,15 +163,55 @@ The user wants an **absolute minimum** dependency list, found empirically:
    (to "other dependencies" or a matching group), rebuild the image, try again.
 3. Don't add things preemptively from upstream docs or CI dependency lists — these
    are usually much longer than needed. Use them only to look up package names.
-4. Debian installs Recommends (none of the Dockerfiles use `--no-install-recommends`,
-   except `dillo-wayland`), so one package sometimes covers the next error too
-   (e.g. `autoconf` pulls `automake`). Check before adding.
+4. **Be explicit:** list every package the build directly needs, even when another
+   listed package already pulls it in through Depends/Recommends (e.g. keep
+   `libsdl2-dev` next to `libsdl2-image-dev`, keep `pkgconf` although SDL2_image pulls
+   it in). "Minimal" means no package without a proven need, not leaving out direct
+   dependencies.
 
-To avoid rebuilding everything on every iteration, run only the failing step inside
-the container against the already extracted source tree instead of the full
-`build.sh` (which `rm -rf`'s the tree). Many upstream dependency scripts cache per
-library (e.g. vpinball's `external.sh` uses `cache.txt`). Finish with a full,
-clean `build.sh` run whenever time permits.
+**Fast iteration loop.** Rebuilding the image for every error is slow. Instead, keep
+one container running and install packages into it as root, then rerun only the
+failing step (not the full `build.sh`, which `rm -rf`'s the tree):
+
+```sh
+docker run -d --name <name>-iter --mount "type=bind,src=$(pwd),dst=/build" <image> sleep infinity
+docker exec -u root <name>-iter apt-get -y install <pkg>
+docker exec <name>-iter bash -c "cd <src> && <failing step>"
+docker rm -f <name>-iter
+```
+
+Write down every package as you go, then move the list into the Dockerfile.
+Many upstream dependency scripts cache per library (e.g. vpinball's `external.sh` uses
+`cache.txt`).
+
+**Always finish with a full, clean `build.sh` run in a fresh image** built from the
+final Dockerfile. A package that was installed temporarily during iteration (or
+later removed again) pulls in its own `-dev` dependencies and can hide a missing
+package; only a fresh image proves the list is complete.
+
+**Don't edit `build.sh` while it is running** (e.g. a background qemu build): `sh`
+reads the script as it goes, so changes mid-run can break that run. Wait for the run
+to finish, or prepare the change elsewhere.
+
+### When a Debian package is not good enough
+
+Debian having a package doesn't mean it's usable. You only find out when the build
+gets that far:
+- **Too old**: e.g. dosbox-staging 0.83 calls a FluidSynth 2.5 function, Debian 13
+  has 2.4.
+- **Broken**: e.g. Debian's `libiir-dev` CMake config refers to a static library the
+  package doesn't ship, so `find_package(iir)` fails.
+
+Such libraries are built in `build.sh` (static, see the build.sh conventions above).
+Choosing a version: projects with a `vcpkg.json` record which versions they test
+with. Look up `builtin-baseline` and read
+`https://raw.githubusercontent.com/microsoft/vcpkg/<baseline>/ports/<port>/vcpkg.json`.
+Take the newest patch release of that minor version.
+
+Check the configure log for **downloads during the build**. Release tarballs without
+submodules sometimes make CMake fetch the missing parts itself (FluidSynth fetches
+`gcem`). That's acceptable when the URL and hash are pinned (`EXPECTED_HASH`);
+otherwise switch to the git clone variant.
 
 ### Optional features need a deliberate choice
 
@@ -181,6 +234,24 @@ RUN apt-get -y install \
   libxkbcommon-dev
 ```
 
+### Test the installed package, not only the build
+
+A successful build and a created tarball don't prove the package works. Upstream
+install rules are often untested (dosbox-staging's CI only builds the vcpkg presets;
+`cmake --install` put the resources one directory too deep, so the binary aborted on
+startup because it couldn't find its shaders). In a fresh container:
+
+```sh
+sudo tar xzf <name>-<version>-<arch>.tar.gz -C /
+/opt/<name>/bin/<binary> --version      # plus a command that loads resources,
+                                        # e.g. dosbox --list-shaders
+SDL_VIDEODRIVER=dummy timeout 5 /opt/<name>/bin/<binary> ...   # headless start
+readelf -d /opt/<name>/bin/<binary> | grep -E "NEEDED|RUNPATH"
+```
+
+`readelf -d` should only list Debian runtime libraries; static bundled libs must not
+appear.
+
 ## User preferences for SBC builds
 
 - **OpenGL ES** on Raspberry Pi / SBCs. Prefer the GLES renderer/backend over desktop
@@ -197,7 +268,15 @@ RUN apt-get -y install \
 ## Test-building for arm64 on an x86_64 host
 
 The real target is aarch64 (`ARCH=$(uname -m)`), and some builds behave differently
-on x86_64 (e.g. desktop GL instead of GLES). If the host has qemu binfmt
+on x86_64 (e.g. desktop GL instead of GLES).
+
+**Build natively on x86_64 first**, with a separate test tag (e.g. `<name>-build-test`).
+Use it to find the dependencies, fix build errors and run the tests above; that takes
+minutes instead of hours. Only once that succeeds, run the arm64 build under qemu as
+an architecture check (aarch64-specific code paths, GLES/RPI options). Only do the
+first iterations under qemu when the x86_64 build can't tell you anything.
+
+If the host has qemu binfmt
 (`ls /proc/sys/fs/binfmt_misc/qemu-aarch64`), build and test under emulation with a
 separate tag, so you don't touch the user's own `<name>-build` image:
 
@@ -214,8 +293,13 @@ Caveats:
   (vpinball) takes hours. Run builds in the background, log to a file, and watch
   for errors and the container stopping.
 - **`sudo` doesn't work under qemu-user** when the binfmt registration lacks the `C`
-  flag (`flags: POF`): "effective uid is not 0". Run only the install/package step with
-  `--user root` for testing. This only affects the test setup, not a real Pi.
+  flag (`flags: POF`): "effective uid is not 0". Run as root (`--user root`); that's
+  enough when only the install/package step needs `sudo`. If `build.sh` also uses `sudo`
+  along the way (installing bundled libs), run the whole script as root and give the
+  files back afterwards:
+  `bash -c "./build.sh; rc=\$?; chown -R 1000:1000 /build; exit \$rc"`.
+  `scripts/iterate.sh` runs as the build user, so use `docker run` directly in that
+  case. This only affects the test setup, not a real Pi.
 - If upstream publishes an official aarch64 binary, compare the file list of the
   package with it (`tar tzf ... | sort | diff`).
 

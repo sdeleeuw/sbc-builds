@@ -2,7 +2,7 @@
 set -e
 
 NAME=UZDoom
-VERSION=4.14.3
+VERSION=5.0.3
 ARCH=$(uname -m)
 
 # download sources
@@ -19,47 +19,25 @@ rm -rf ${NAME}-${VERSION}
 # extract tarball
 tar xzf ${NAME}-${VERSION}.tar.gz
 
-# --------
-
-ZMUSIC_VERSION=1.3.0
-ZMUSIC_DIRNAME=ZMusic-${ZMUSIC_VERSION}
-
-test -e ${ZMUSIC_DIRNAME}.tar.gz || \
-  wget "https://github.com/ZDoom/ZMusic/archive/refs/tags/${ZMUSIC_VERSION}.tar.gz" \
-    -O ${ZMUSIC_DIRNAME}.tar.gz
-
-rm -rf ${ZMUSIC_DIRNAME}
-tar xzf ${ZMUSIC_DIRNAME}.tar.gz
-
-mkdir ${ZMUSIC_DIRNAME}/build
-( cd ${ZMUSIC_DIRNAME}/build
-  cmake -DCMAKE_BUILD_TYPE=Release ..
-  cmake --build . --parallel $(nproc)
-  sudo make install
-)
-
-# --------
-
 # setup
 mkdir ${NAME}-${VERSION}/build
 cd ${NAME}-${VERSION}/build
 
+# SHARE_DIR defaults to /usr/share, set it to the install prefix so the
+# engine finds uzdoom.pk3 and the other resources in /opt/UZDoom/share
 cmake \
   -DCMAKE_INSTALL_PREFIX=/opt/UZDoom \
+  -DCMAKE_CXX_FLAGS='-DSHARE_DIR=\"/opt/UZDoom/share\"' \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -G Ninja \
   ..
 
-# compile
-cmake --build .
+# compile (the tarball has no git info, pass the version for gitinfo.h)
+GIT_DESCRIBE=${VERSION} cmake --build .
 
 # install
 sudo cmake --install .
-
-# copy libs
-sudo mkdir -p /opt/UZDoom/lib
-sudo cp /usr/local/lib/libzmusic.so.1 /opt/UZDoom/lib/
 
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/UZDoom )

@@ -31,7 +31,7 @@ else
     git -c submodule."Externals/Qt".update=none \
 	-c submodule."Externals/FFmpeg-bin".update=none \
 	-c submodule."Externals/libadrenotools".update=none \
-	submodule update --init --recursive
+	submodule update --init --recursive --depth 1
   )
 
   # create source tarball

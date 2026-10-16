@@ -31,9 +31,7 @@ else
     git -c submodule."Externals/Qt".update=none \
 	-c submodule."Externals/FFmpeg-bin".update=none \
 	-c submodule."Externals/libadrenotools".update=none \
-	submodule update --init --recursive
-
-    git pull --recurse-submodules
+	submodule update --init --recursive --depth 1
   )
 
   # create source tarball
@@ -48,8 +46,7 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-# NoGUI frontend is off by default since 2609
-cmake --install-prefix=/opt/dolphin -DENABLE_NOGUI=ON ..
+cmake --install-prefix=/opt/dolphin ..
 
 # compile
 make -j $(nproc)

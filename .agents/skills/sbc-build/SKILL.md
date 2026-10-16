@@ -134,10 +134,21 @@ Conventions:
   drop old releases (eduke32 now uses `synthesis/${VERSION}/`; thextech moved from
   wohlsoft.ru to the GitHub release asset). When upstream publishes a checksum
   (GitHub asset `digest`, mesa release notes on docs.mesa3d.org), compare it before
-  writing `checksums-sha256.txt`.
+  writing `checksums-sha256.txt`. Docs and wikis often link to unversioned files that
+  upstream overwrites (thextech's game assets on wohlsoft.ru); list the release
+  assets (`gh api repos/<org>/<repo>/releases/tags/<tag> --jq '.assets[] | "\(.name)
+  \(.digest)"'`) for a versioned copy before using such a link.
 - Every build starts clean (`rm -rf` of the source dir, then extract again).
 - **No upstream install rules** (vkQuake, vpinball): install by hand with
   `sudo mkdir -p /opt/<name>/bin` and `sudo cp`, then package as usual.
+- **Data packages** (game assets etc.) are shipped inside `opt/<name>` too. When
+  upstream offers several variants (`.7z`, `.deb`), compare the contents before
+  choosing: thextech's SMBX `.deb` holds the same assets as the `.7z` plus a launcher,
+  menu entry and icon. Extract a `.deb` with `dpkg-deb -x` (no extra build
+  dependency), copy its `usr/share` to `/opt/<name>/share` (keeps upstream's layout,
+  e.g. `share/games/TheXTech/smbx13`) and `sed` the `/usr` paths in its scripts and
+  menu entries (see `thextech/build.sh`). Only the checksum goes into the repo; add
+  the file type to `.gitignore`.
 - Bundled extra libraries go in their own block separated by `# --------`, with their
   own `*_VERSION` variable (see `UZDoom/build.sh`). With several bundled libs, put all
   downloads before the single `sha256sum -c`, so every tarball is verified (see
@@ -279,6 +290,23 @@ create window / OpenGL not available" after the startup messages is expected; it
 still proves the binary loads its libraries and config. Some programs can list their
 compiled-in drivers (`retroarch --features`), which beats grepping configure output.
 
+When the program only loads its data **after** creating the window (thextech finds
+its asset packs only then), `dummy` stops too early. Use SDL's `offscreen` driver
+with Mesa's software renderer (llvmpipe) instead; that gets through window creation
+and shows the data loading with `--verbose` or in the log:
+
+```sh
+apt-get install libegl1 libgl1-mesa-dri    # test container only
+SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy timeout 15 /opt/<name>/bin/<binary> ...
+```
+
+Run the program as a normal user (`useradd -m u; su - u -c "..."`), not as root,
+and check where it writes its user data. thextech has an upstream bug: when
+`~/.local/share` doesn't exist yet, it writes to `~/.local/` instead of
+`~/.local/share/TheXTech/`, so create `~/.local/share` first to test the normal case.
+`su -` gives a login `PATH` without `/opt/<name>/bin`, which is also how a menu
+entry starts the program.
+
 ## User preferences for SBC builds
 
 - **OpenGL ES** on Raspberry Pi / SBCs. Prefer the GLES renderer/backend over desktop
@@ -291,6 +319,14 @@ compiled-in drivers (`retroarch --features`), which beats grepping configure out
   `libgbm-dev`, `libegl-dev`, and `libudev-dev` for input (SDL3 doesn't scan
   `/dev/input` without udev).
 - **Audio: PulseAudio and PipeWire** (plus ALSA).
+- **Menu entries with full paths.** The user adds the `.desktop` files from
+  `/opt/<name>/share/applications` to the menu on the SBC, and `/opt/<name>/bin` is
+  not in `PATH`. `sed` every `Exec=` line (including `[Desktop Action]` entries) to
+  `/opt/<name>/bin/<binary>` and `Icon=` to the full path of the largest PNG; do the
+  same for launcher scripts that call the binary. Upstream entries can be wrong (the
+  SMBX `.deb` used `@F` instead of `%F`); check them with `desktop-file-validate` in
+  the test container (`desktop-file-utils`; the deprecated `Encoding` key is only a
+  warning).
 
 ## Test-building for arm64 on an x86_64 host
 

@@ -2,7 +2,7 @@
 set -e
 
 NAME=Commander-Genius
-VERSION=3.5.2
+VERSION=3.6.4
 
 PREFIX=/opt/commandergenius
 ARCH=$(uname -m)
@@ -10,7 +10,7 @@ DATE=$(date +%Y%m%d)
 
 # download sources
 test -e ${NAME}-v${VERSION}.tar.gz || \
-  wget "https://gitlab.com/Dringgstein/Commander-Genius/-/archive/v3.5.2/Commander-Genius-v${VERSION}.tar.gz" \
+  wget "https://gitlab.com/Dringgstein/Commander-Genius/-/archive/v${VERSION}/${NAME}-v${VERSION}.tar.gz" \
     -O ${NAME}-v${VERSION}.tar.gz
 
 # check integrity
@@ -22,11 +22,8 @@ rm -rf ${NAME}-v${VERSION}
 # extract tarball
 tar xzf ${NAME}-v${VERSION}.tar.gz
 
-# apply source patches
-cd ${NAME}-v${VERSION}
-cat $(find ../patches/ -type f -name '*.patch' | sort) | patch -p1
-
 # setup
+cd ${NAME}-v${VERSION}
 mkdir build && cd build
 cmake .. \
   -DCMAKE_INSTALL_PREFIX=${PREFIX} \

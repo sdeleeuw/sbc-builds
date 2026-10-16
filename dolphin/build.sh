@@ -2,7 +2,7 @@
 set -e
 
 NAME=dolphin
-VERSION=2603a
+VERSION=2609a
 ARCH=$(uname -m)
 
 # clean up previous build
@@ -48,7 +48,8 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-cmake --install-prefix=/opt/dolphin ..
+# NoGUI frontend is off by default since 2609
+cmake --install-prefix=/opt/dolphin -DENABLE_NOGUI=ON ..
 
 # compile
 make -j $(nproc)

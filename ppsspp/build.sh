@@ -38,7 +38,12 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-cmake --install-prefix /opt/ppsspp -D USING_X11_VULKAN=off ..
+# SKIP_INSTALL_ALL keeps the bundled freetype and zlib from installing
+# their headers and static libraries into /opt/ppsspp
+cmake --install-prefix /opt/ppsspp \
+  -D SKIP_INSTALL_ALL=on \
+  -D USING_X11_VULKAN=off \
+  ..
 
 # compile
 make -j $(nproc)
@@ -48,4 +53,4 @@ sudo make install
 
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/ppsspp )
-mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

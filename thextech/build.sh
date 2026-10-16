@@ -2,11 +2,11 @@
 set -e
 
 NAME=thextech
-VERSION=1.3.7.1
+VERSION=1.7.4
 
 # download sources
 test -e ${NAME}-${VERSION}.tar.gz || \
-  wget "https://wohlsoft.ru/projects/TheXTech/_downloads/releases/${NAME}-full-src-v${VERSION}.tar.gz" \
+  wget "https://github.com/TheXTech/TheXTech/releases/download/v${VERSION}/${NAME}-full-src-v${VERSION}.tar.gz" \
     -O ${NAME}-${VERSION}.tar.gz
 
 # check integrity

@@ -1,2 +1,10 @@
 dosbox-staging-*.tar.gz
 dosbox-staging-*/
+fluidsynth-*.tar.gz
+fluidsynth-*/
+iir1-*.tar.gz
+iir1-*/
+libmt32emu-*.tar.gz
+munt-libmt32emu_*/
+zlib-ng-*.tar.gz
+zlib-ng-*/

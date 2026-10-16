@@ -14,7 +14,9 @@ read 2–3 recent packages (`git log` shows the newest) and copy their exact for
 Good references: `luanti/` (cmake, tarball), `UZDoom/` (tarball + bundled extra lib),
 `dillo-wayland/` (two sources, wayland), `dolphin/` and `ppsspp/` (git clone variant),
 `vpinball/` (upstream external-deps script, GLES), `dosbox-staging/` (CMake preset with
-system libraries, four static bundled libs, `sed` fix for an upstream bug).
+system libraries, four static bundled libs, `sed` fix for an upstream bug), `vkQuake/`
+(meson, build-only Vulkan SDK parts, manual install, `patchelf`), `retroarch/`
+(autodetecting `configure`, backends chosen in the Dockerfile, GLES without X11).
 
 ## Files per package
 
@@ -127,7 +129,15 @@ Conventions:
   created from `/` and moved back into the package directory (adjust `../` depth to
   how deep the script `cd`'d).
 - Sources are downloaded once (`test -e ... ||`) and always verified with `sha256sum -c`.
+- **Download URLs must keep working for this exact version.** Use a versioned URL
+  (GitHub tag archive or release asset); avoid `latest/` directories and mirrors that
+  drop old releases (eduke32 now uses `synthesis/${VERSION}/`; thextech moved from
+  wohlsoft.ru to the GitHub release asset). When upstream publishes a checksum
+  (GitHub asset `digest`, mesa release notes on docs.mesa3d.org), compare it before
+  writing `checksums-sha256.txt`.
 - Every build starts clean (`rm -rf` of the source dir, then extract again).
+- **No upstream install rules** (vkQuake, vpinball): install by hand with
+  `sudo mkdir -p /opt/<name>/bin` and `sudo cp`, then package as usual.
 - Bundled extra libraries go in their own block separated by `# --------`, with their
   own `*_VERSION` variable (see `UZDoom/build.sh`). With several bundled libs, put all
   downloads before the single `sha256sum -c`, so every tarball is verified (see
@@ -139,6 +149,11 @@ Conventions:
   lib that the program doesn't use and that would pull in more dependencies (e.g.
   FluidSynth as synthesizer only, without audio drivers). The alternative is shipping
   the `.so` inside `opt/<name>` (see `UZDoom/`).
+- **Build-only tools and link-only libraries** go into `/usr/local` too and are never
+  shipped. vkQuake needs a newer Vulkan SDK than Debian: SPIRV-Tools (`spirv-opt`) only
+  runs during the build, the Vulkan-Loader is only linked against, and at runtime the
+  same soname (`libvulkan.so.1`) resolves to Debian's loader. Take all Khronos parts
+  from one `vulkan-sdk-<version>` tag, the one upstream CI uses.
 - Upstream bugs in the build files get a small `sed` in `build.sh` right after
   extracting, with a comment explaining it and a link to the upstream issue/PR. Use
   `patches/*.patch` only for larger changes.
@@ -250,7 +265,19 @@ readelf -d /opt/<name>/bin/<binary> | grep -E "NEEDED|RUNPATH"
 ```
 
 `readelf -d` should only list Debian runtime libraries; static bundled libs must not
-appear.
+appear. **There should be no RUNPATH** pointing to the build host:
+- Meson adds the dir of a pkg-config library outside the system dirs (vkQuake:
+  `/usr/local/lib` for the link-only Vulkan-Loader); remove it with
+  `sudo patchelf --remove-rpath` after installing.
+- Upstream may hardcode one (thextech: `set(CMAKE_INSTALL_RPATH ".")` loads libraries
+  from the current directory); clear it with a `sed` after extracting.
+
+For the test container, install only runtime packages, derived from the `NEEDED`
+list. GL via glvnd: `libGL.so.1` → `libgl1`, `libOpenGL.so.0` → `libopengl0`,
+`libGLESv2.so.2` → `libgles2`. SDL's `dummy` video driver has no OpenGL, so "unable to
+create window / OpenGL not available" after the startup messages is expected; it
+still proves the binary loads its libraries and config. Some programs can list their
+compiled-in drivers (`retroarch --features`), which beats grepping configure output.
 
 ## User preferences for SBC builds
 
@@ -283,6 +310,13 @@ build usually only costs time.
    (`CMAKE_SYSTEM_PROCESSOR` checks, RPI/GLES switches). Say in one line why the
    qemu build is needed before starting it.
 
+Before reaching for qemu, try to **reproduce the aarch64 configuration on x86_64**
+with explicit options. thextech's `TargetArch.cmake` reports `arm64` on aarch64,
+which matches `arm.*` and disables desktop GL; building on x86_64 with
+`-DTHEXTECH_BUILD_GL_DESKTOP_MODERN=OFF -DTHEXTECH_BUILD_GL_DESKTOP_LEGACY=OFF`
+compiled the GLES-only path in minutes (it links `libGLESv2.so.2` instead of
+`libGL.so.1`). Use a separate build dir for this check.
+
 Otherwise, say in the summary that the package was only built on x86_64. When a qemu
 build is needed, still iterate on x86_64 first and run qemu only once that succeeds;
 only iterate under qemu when the x86_64 build can't tell you anything.
@@ -314,6 +348,41 @@ Caveats:
 - If upstream publishes an official aarch64 binary, compare the file list of the
   package with it (`tar tzf ... | sort | diff`).
 
+## Bumping a version
+
+1. Diff the build files between the old and new release (`CMakeLists.txt`,
+   `meson.build`, `configure` options): new minimum versions, renamed or removed
+   options, new optional backends (vkQuake 1.37 prefers SDL3 when found; the existing
+   SDL2 choice was kept with `-Duse_sdl3=disabled`).
+2. Compare new minimum versions with Debian 13 (`docker run --rm debian:13 bash -c
+   "apt-get update -qq && apt-cache policy <pkg>"`, plus trixie-backports). Upstream
+   CI files (e.g. an AppImage Dockerfile) show the SDK/library versions upstream
+   tests with.
+3. Check every patch and `sed` still applies and is still needed
+   (`patch -p1 --dry-run`). Drop it when upstream fixed the problem
+   (Commander-Genius 3.6 no longer needs the GCC 14 `TTF_Font` patch).
+4. Version schemes can change (TheXTech 1.3.7.x was followed by 1.7.4).
+5. Older packages may lack `ARCH`, install and package steps, or still use an Ubuntu
+   Dockerfile. Bump first and mention it; modernise only when the user agrees
+   (retroarch moved to Debian 13 that way, thextech got its binary package).
+
+## Checking for new versions
+
+When asked for an overview, compare each `VERSION=` (and bundled `*_VERSION=`) with
+upstream: GitHub `releases/latest` for most packages, tags for dolphin (no releases)
+and munt (`libmt32emu_*`), the newest pre-release for vpinball, the GitLab API for
+Commander-Genius, `archive.mesa3d.org`, `dillo-browser.org/release/`, and
+dukeworld's `synthesis/latest/` for eduke32. Mark bundled libraries that are
+deliberately pinned to the version upstream tests with (dosbox-staging's vcpkg
+baseline, vkQuake's Vulkan SDK) as pinned, not as outdated.
+
+## Host resources
+
+The build host has 2 cores and a small disk (38 GB). Run one build at a time. After
+finishing a package, remove its test image, the extracted source/build dirs and the
+build cache (`docker builder prune -af`; the user agreed). Keep the downloaded
+tarballs, and never touch images of other projects on the host.
+
 ## Commits
 
 Conventional style, English, lowercase scope = package name:
@@ -321,6 +390,13 @@ Conventional style, English, lowercase scope = package name:
 - `feat(<name>): new package`
 - `feat(<name>): bump to v<version>`
 - `fix(<name>): <short description>`
-- `chore: <repo-wide change>`
+- `chore: <repo-wide change>` (removing a package: `chore: remove <name>`)
 
-Only commit/push when the user asks.
+**One commit per package**, also when removing several packages. `git rm` stages
+right away, so another package's deletion can slip into the next commit: check
+`git show --stat` before pushing. Git has no identity configured on the build host;
+commit with `git -c user.name="Sander de Leeuw" -c user.email="s.deleeuw@gmail.com"`
+(as in the history) instead of changing the config.
+
+Only commit/push when the user asks. The user prefers no PR: work on a local branch,
+rebase on `origin/main`, fast-forward `main` and push.

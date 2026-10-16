@@ -54,6 +54,12 @@ make -j $(nproc)
 # install
 sudo make install
 
+# use full paths in the menu entry
+sudo sed -i \
+  -e 's|^Exec=dolphin-emu$|Exec=/opt/dolphin/bin/dolphin-emu|' \
+  -e 's|^Icon=dolphin-emu$|Icon=/opt/dolphin/share/icons/hicolor/256x256/apps/dolphin-emu.png|' \
+  /opt/dolphin/share/applications/dolphin-emu.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/dolphin )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

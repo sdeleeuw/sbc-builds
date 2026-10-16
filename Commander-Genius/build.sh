@@ -6,7 +6,6 @@ VERSION=3.6.4
 
 PREFIX=/opt/commandergenius
 ARCH=$(uname -m)
-DATE=$(date +%Y%m%d)
 
 # download sources
 test -e ${NAME}-v${VERSION}.tar.gz || \
@@ -45,6 +44,6 @@ sudo sed -i \
   -e "s|^Icon=cg\$|Icon=${PREFIX}/share/icons/hicolor/512x512/apps/cg.512.png|" \
   ${PREFIX}/share/applications/cgenius.desktop
 
-# create binary tarball
-cd /opt
-tar cvzf /build/${NAME}-${VERSION}-${ARCH}-${DATE}.tar.gz commandergenius
+# create binary package
+( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/commandergenius )
+mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

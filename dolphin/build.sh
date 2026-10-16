@@ -46,8 +46,7 @@ fi
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
-# NoGUI frontend is off by default since 2609
-cmake --install-prefix=/opt/dolphin -DENABLE_NOGUI=ON ..
+cmake --install-prefix=/opt/dolphin ..
 
 # compile
 make -j $(nproc)

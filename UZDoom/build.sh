@@ -39,6 +39,13 @@ GIT_DESCRIBE=${VERSION} cmake --build .
 # install
 sudo cmake --install .
 
+# use full paths in the menu entry and its actions (upstream only installs an
+# SVG icon)
+sudo sed -i \
+  -e 's|^Exec=uzdoom |Exec=/opt/UZDoom/bin/uzdoom |' \
+  -e 's|^Icon=org.zdoom.UZDoom$|Icon=/opt/UZDoom/share/icons/hicolor/scalable/apps/org.zdoom.UZDoom.svg|' \
+  /opt/UZDoom/share/applications/org.zdoom.UZDoom.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/UZDoom )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

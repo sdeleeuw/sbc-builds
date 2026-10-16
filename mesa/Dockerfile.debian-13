@@ -36,5 +36,8 @@ RUN sed -i "s/Types: deb/Types: deb deb-src/" \
 RUN apt-get update \
  && apt-get -y build-dep mesa
 
+# udev library (not in Debian's build-deps; display hotplug for Vulkan KMS)
+RUN apt-get -y install libudev-dev
+
 USER build
 WORKDIR /build

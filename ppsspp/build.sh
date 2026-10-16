@@ -2,7 +2,7 @@
 set -e
 
 NAME=ppsspp
-VERSION=1.20.3
+VERSION=1.20.4
 ARCH=$(uname -m)
 
 # clean up previous build

@@ -38,6 +38,13 @@ make -j $(nproc)
 # install
 sudo make install
 
+# use full paths in the menu entry (upstream installs the icons as cg.<size>.png,
+# so "Icon=cg" wouldn't be found even with the icon dir in the theme path)
+sudo sed -i \
+  -e "s|^Exec=CGeniusExe\$|Exec=${PREFIX}/bin/CGeniusExe|" \
+  -e "s|^Icon=cg\$|Icon=${PREFIX}/share/icons/hicolor/512x512/apps/cg.512.png|" \
+  ${PREFIX}/share/applications/cgenius.desktop
+
 # create binary tarball
 cd /opt
 tar cvzf /build/${NAME}-${VERSION}-${ARCH}-${DATE}.tar.gz commandergenius

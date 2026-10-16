@@ -105,6 +105,15 @@ sudo mkdir -p /opt/vkQuake/bin
 sudo cp build/vkquake /opt/vkQuake/bin/
 sudo patchelf --remove-rpath /opt/vkQuake/bin/vkquake
 
+# install the menu entry and icon, using full paths
+sudo mkdir -p /opt/vkQuake/share/applications /opt/vkQuake/share/icons/hicolor/512x512/apps
+sudo cp Misc/vkquake.desktop /opt/vkQuake/share/applications/
+sudo cp Misc/vkQuake_512.png /opt/vkQuake/share/icons/hicolor/512x512/apps/vkquake.png
+sudo sed -i \
+  -e 's|^Exec=vkquake$|Exec=/opt/vkQuake/bin/vkquake|' \
+  -e 's|^Icon=vkquake$|Icon=/opt/vkQuake/share/icons/hicolor/512x512/apps/vkquake.png|' \
+  /opt/vkQuake/share/applications/vkquake.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/vkQuake )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../

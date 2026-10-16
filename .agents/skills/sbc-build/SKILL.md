@@ -300,6 +300,11 @@ apt-get install libegl1 libgl1-mesa-dri    # test container only
 SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy timeout 15 /opt/<name>/bin/<binary> ...
 ```
 
+This also proves the **OpenGL ES** context works, under qemu too: add `libgles2`
+(and `libegl-mesa0`) and look for the GL version in the log (supertuxkart: "Using
+renderer: OpenGL ES 3.2", then it compiles its shaders). Programs that load GL
+through SDL/EGL (glad) don't list `libGLESv2` in `NEEDED`, so `readelf -d` can't show it.
+
 Run the program as a normal user (`useradd -m u; su - u -c "..."`), not as root,
 and check where it writes its user data. thextech has an upstream bug: when
 `~/.local/share` doesn't exist yet, it writes to `~/.local/` instead of
@@ -357,9 +362,12 @@ Otherwise, say in the summary that the package was only built on x86_64. When a 
 build is needed, still iterate on x86_64 first and run qemu only once that succeeds;
 only iterate under qemu when the x86_64 build can't tell you anything.
 
-If the host has qemu binfmt
-(`ls /proc/sys/fs/binfmt_misc/qemu-aarch64`), build and test under emulation with a
-separate tag, so you don't touch the user's own `<name>-build` image:
+Check that the host has qemu binfmt (`cat /proc/sys/fs/binfmt_misc/qemu-aarch64`).
+The registration doesn't survive a reboot and the host has no qemu-user packages;
+register it with `docker run --privileged --rm tonistiigi/binfmt --install arm64`
+(flags `POCF`, so `sudo` works) and remove the `tonistiigi/binfmt` image afterwards.
+Build and test under emulation with a separate tag, so you don't touch the user's
+own `<name>-build` image:
 
 ```sh
 docker build --platform linux/arm64 -t <name>-build-arm64 -f Dockerfile.debian-13 .
@@ -373,6 +381,10 @@ Caveats:
 - Emulation is slow (roughly 5–10×). A large project with many dependencies
   (vpinball) takes hours. Run builds in the background, log to a file, and watch
   for errors and the container stopping.
+- A background task is stopped after 2 hours (supertuxkart took ~2¾ hours under
+  qemu). Only the `docker` client dies; the container keeps building. Find it with
+  `docker ps`, follow it with `docker logs -f <container>` and wait with
+  `docker wait <container>` (prints the exit code).
 - **`sudo` doesn't work under qemu-user** when the binfmt registration lacks the `C`
   flag (`flags: POF`): "effective uid is not 0". Run as root (`--user root`); that's
   enough when only the install/package step needs `sudo`. If `build.sh` also uses `sudo`

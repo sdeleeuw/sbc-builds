@@ -51,6 +51,12 @@ make -j $(nproc)
 # install
 sudo make install
 
+# use full paths in the menu entry
+sudo sed -i \
+  -e 's|^Exec=PPSSPPSDL$|Exec=/opt/ppsspp/bin/PPSSPPSDL|' \
+  -e 's|^Icon=ppsspp$|Icon=/opt/ppsspp/share/icons/hicolor/512x512/apps/ppsspp.png|' \
+  /opt/ppsspp/share/applications/PPSSPPSDL.desktop
+
 # create binary package
 ( cd /; tar cvzf "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" opt/ppsspp )
 mv "/tmp/${NAME}-${VERSION}-${ARCH}.tar.gz" ../../

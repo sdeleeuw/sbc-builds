@@ -20,6 +20,11 @@ RUN apt-get -y install build-essential cmake pkgconf
 # SDL2 library
 RUN apt-get -y install libsdl2-dev
 
+# Vulkan renderer: shaderc (shader compiler) and astcenc (ASTC texture compression)
+RUN apt-get -y install \
+  libastcenc-dev \
+  libshaderc-dev
+
 # other dependencies
 RUN apt-get -y install \
   libbluetooth-dev \

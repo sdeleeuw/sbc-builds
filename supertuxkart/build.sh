@@ -21,15 +21,15 @@ tar xzf ${NAME}-${VERSION}.tar.gz
 mv SuperTuxKart-${VERSION}-src ${NAME}-${VERSION}
 
 # configure
-# - OpenGL ES renderer (default on aarch64, explicit for x86_64 test builds)
-# - no Vulkan renderer (needs shaderc) and no in-game recorder (libopenglrecorder
-#   is not in Debian)
+# - OpenGL ES renderer (default on aarch64, explicit for x86_64 test builds);
+#   the Vulkan renderer is always built (select it with --render-driver=vulkan
+#   or in the video settings)
+# - no in-game recorder (libopenglrecorder is not in Debian)
 mkdir -p "${NAME}-${VERSION}/build"
 cd "${NAME}-${VERSION}/build"
 
 cmake \
   -DUSE_GLES2=ON \
-  -DNO_SHADERC=ON \
   -DBUILD_RECORDER=OFF \
   -DCMAKE_BUILD_TYPE=Release \
   --install-prefix=/opt/supertuxkart \

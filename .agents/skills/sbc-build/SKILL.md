@@ -16,7 +16,9 @@ Good references: `luanti/` (cmake, tarball), `UZDoom/` (tarball + bundled extra 
 `vpinball/` (upstream external-deps script, GLES), `dosbox-staging/` (CMake preset with
 system libraries, four static bundled libs, `sed` fix for an upstream bug), `vkQuake/`
 (meson, build-only Vulkan SDK parts, manual install, `patchelf`), `retroarch/`
-(autodetecting `configure`, backends chosen in the Dockerfile, GLES without X11).
+(autodetecting `configure`, backends chosen in the Dockerfile, GLES without X11),
+`supertuxkart/` (release tarball with game data, GLES + Vulkan, Debian libraries
+instead of in-tree copies, removing in-tree libs from the package, menu entry `sed`).
 
 ## Files per package
 
@@ -160,6 +162,11 @@ Conventions:
   lib that the program doesn't use and that would pull in more dependencies (e.g.
   FluidSynth as synthesizer only, without audio drivers). The alternative is shipping
   the `.so` inside `opt/<name>` (see `UZDoom/`).
+- **Libraries built from the source tree can install into the package.**
+  supertuxkart's in-tree angelscript and wiiuse put `lib/*.a`, headers and CMake files
+  into `/opt/<name>`. Check the top level of the package
+  (`tar tzf <package> | awk -F/ '{print $3}' | sort -u`) and `sudo rm -rf` what is
+  only needed for linking, right after installing.
 - **Build-only tools and link-only libraries** go into `/usr/local` too and are never
   shipped. vkQuake needs a newer Vulkan SDK than Debian: SPIRV-Tools (`spirv-opt`) only
   runs during the build, the Vulkan-Loader is only linked against, and at runtime the
@@ -218,6 +225,24 @@ package; only a fresh image proves the list is complete.
 **Don't edit `build.sh` while it is running** (e.g. a background qemu build): `sh`
 reads the script as it goes, so changes mid-run can break that run. Wait for the run
 to finish, or prepare the change elsewhere.
+
+### Debian packages instead of in-tree copies
+
+Many projects ship libraries in their source tree (`lib/`, `third_party/`) but use the
+system copy when it's found (`USE_SYSTEM_*` options, or `find_library` before falling
+back to `add_subdirectory`). **Prefer the Debian package** (the user's rule):
+supertuxkart uses Debian's mcpp and squish; the configure log shows which one was
+picked ("Use system libsquish" / "System libmcpp not found, use the bundled one").
+Keep the in-tree copy when Debian doesn't have the library (angelscript, wiiuse), or
+when the system copy costs a feature: supertuxkart only uses the system enet with
+IPv6 turned off, so its patched copy stays.
+
+**Check what an optional library is for** before leaving it out (or adding it):
+grep the sources for its `ENABLE_*`/`HAVE_*` define. astcenc only gave a configure
+warning, and turned out to be used only by supertuxkart's Vulkan renderer. Leaving it
+out was right while Vulkan was disabled, but it was needed once Vulkan was turned on:
+SBC GPUs (V3D, Adreno) don't support BC/S3TC under Vulkan, so ASTC is the only
+compressed texture format they can use there.
 
 ### When a Debian package is not good enough
 
@@ -284,7 +309,10 @@ appear. **There should be no RUNPATH** pointing to the build host:
   from the current directory); clear it with a `sed` after extracting.
 
 For the test container, install only runtime packages, derived from the `NEEDED`
-list. GL via glvnd: `libGL.so.1` → `libgl1`, `libOpenGL.so.0` → `libopengl0`,
+list. The package names don't follow the soname (`libastcenc.so.5d` →
+`libastcenc5d`, plus the `t64` suffixes: `libcurl4t64`, `libpng16-16t64`,
+`libssl3t64`); look them up with `apt-cache search` first, because one wrong name
+makes `apt-get install` fail for all of them. GL via glvnd: `libGL.so.1` → `libgl1`, `libOpenGL.so.0` → `libopengl0`,
 `libGLESv2.so.2` → `libgles2`. SDL's `dummy` video driver has no OpenGL, so "unable to
 create window / OpenGL not available" after the startup messages is expected; it
 still proves the binary loads its libraries and config. Some programs can list their
@@ -304,6 +332,18 @@ This also proves the **OpenGL ES** context works, under qemu too: add `libgles2`
 (and `libegl-mesa0`) and look for the GL version in the log (supertuxkart: "Using
 renderer: OpenGL ES 3.2", then it compiles its shaders). Programs that load GL
 through SDL/EGL (glad) don't list `libGLESv2` in `NEEDED`, so `readelf -d` can't show it.
+
+SDL2's `offscreen` driver has **no Vulkan** support. To test a Vulkan renderer, use
+Xvfb with Mesa's software Vulkan driver (lavapipe), in the test container only:
+
+```sh
+apt-get install libvulkan1 mesa-vulkan-drivers xvfb xauth
+SDL_AUDIODRIVER=dummy timeout 60 xvfb-run -s '-screen 0 1280x720x24' \
+  /opt/supertuxkart/bin/supertuxkart --render-driver=vulkan
+```
+
+The log should show the Vulkan device ("Vulkan renderer: llvmpipe"). SDL loads
+`libvulkan.so.1` itself, so it's not in `NEEDED` either. This also works under qemu.
 
 Run the program as a normal user (`useradd -m u; su - u -c "..."`), not as root,
 and check where it writes its user data. thextech has an upstream bug: when
@@ -382,9 +422,13 @@ Caveats:
   (vpinball) takes hours. Run builds in the background, log to a file, and watch
   for errors and the container stopping.
 - A background task is stopped after 2 hours (supertuxkart took ~2¾ hours under
-  qemu). Only the `docker` client dies; the container keeps building. Find it with
-  `docker ps`, follow it with `docker logs -f <container>` and wait with
-  `docker wait <container>` (prints the exit code).
+  qemu). For long builds, start a detached container right away instead of
+  `scripts/iterate.sh`:
+  `docker run -d --name <name>-arm64 --platform linux/arm64 --mount ... <name>-build-arm64 ./build.sh`,
+  follow it with `docker logs -f <name>-arm64` and wait with
+  `docker wait <name>-arm64` (prints the exit code), then `docker rm` it. If a
+  foreground `docker run` gets stopped anyway, only the client dies and the container
+  keeps building; find it with `docker ps`.
 - **`sudo` doesn't work under qemu-user** when the binfmt registration lacks the `C`
   flag (`flags: POF`): "effective uid is not 0". Run as root (`--user root`); that's
   enough when only the install/package step needs `sudo`. If `build.sh` also uses `sudo`
@@ -447,4 +491,16 @@ commit with `git -c user.name="Sander de Leeuw" -c user.email="s.deleeuw@gmail.c
 (as in the history) instead of changing the config.
 
 Only commit/push when the user asks. The user prefers no PR: work on a local branch,
-rebase on `origin/main`, fast-forward `main` and push.
+rebase on `origin/main`, fast-forward `main` and push:
+
+```sh
+git fetch origin
+git -c user.name="Sander de Leeuw" -c user.email="s.deleeuw@gmail.com" rebase origin/main
+git -C /home/sander/Projects/sbc-builds merge --ff-only <branch>   # main is checked out there
+git -C /home/sander/Projects/sbc-builds push origin main
+```
+
+`rebase` needs the identity too (it rewrites the commits). After a long build,
+`origin/main` may have new conventions (menu entries with full paths arrived during
+the supertuxkart build): read `git diff HEAD origin/main` of this skill and of
+other packages, and apply them to the new package before committing.
